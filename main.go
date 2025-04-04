@@ -3,9 +3,15 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/Skufu/RSS/internal/config"
 )
+
+// state holds application state that can be passed to command handlers
+type state struct {
+	config *config.Config
+}
 
 func main() {
 	// Read the config file
@@ -13,21 +19,39 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error reading config: %v", err)
 	}
-	fmt.Printf("Initial config: %+v\n", cfg)
-	fmt.Printf("Database URL: %s\n", cfg.DatabaseURL)
 
-	// Set the current user and update the config file
-	err = cfg.SetUser("Adrian")
-	if err != nil {
-		log.Fatalf("Error setting user: %v", err)
+	// Initialize application state
+	s := &state{
+		config: &cfg,
 	}
-	fmt.Println("Updated user to 'Adrian'")
 
-	// Read the config file again and print contents
-	updatedCfg, err := config.Read()
-	if err != nil {
-		log.Fatalf("Error reading updated config: %v", err)
+	// Initialize commands
+	cmds := &commands{
+		handlers: make(map[string]func(*state, command) error),
 	}
-	fmt.Printf("Updated config: %+v\n", updatedCfg)
-	fmt.Printf("Database URL: %s\n", updatedCfg.DatabaseURL)
+
+	// Register command handlers
+	cmds.register("login", handlerLogin)
+
+	// Process command line arguments
+	args := os.Args
+
+	if len(args) < 2 {
+		fmt.Println("Error: not enough arguments provided")
+		fmt.Println("Usage: gator <command> [args...]")
+		fmt.Println("Available commands: login")
+		os.Exit(1)
+	}
+
+	// Parse the command (skip first arg which is the program name)
+	cmd := command{
+		name: args[1],
+		args: args[2:],
+	}
+
+	// Run the command
+	if err := cmds.run(s, cmd); err != nil {
+		fmt.Printf("Error: %v\n", err)
+		os.Exit(1)
+	}
 }
