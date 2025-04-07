@@ -13,6 +13,7 @@ type Config struct {
 }
 
 const configFileName = ".gatorconfig.json"
+const defaultDBURL = "postgres://adriangabriellfrancisco:@localhost:5432/gator?sslmode=disable"
 
 // Read reads the config file from ~/.gatorconfig.json and returns a Config struct
 func Read() (Config, error) {
@@ -26,7 +27,7 @@ func Read() (Config, error) {
 		// If the file doesn't exist, return a default config
 		if os.IsNotExist(err) {
 			return Config{
-				DatabaseURL: "postgres://example",
+				DatabaseURL: defaultDBURL,
 			}, nil
 		}
 		return Config{}, err
@@ -39,7 +40,7 @@ func Read() (Config, error) {
 
 	// Set default values if not present
 	if config.DatabaseURL == "" {
-		config.DatabaseURL = "postgres://example"
+		config.DatabaseURL = defaultDBURL
 	}
 
 	return config, nil
