@@ -1,16 +1,20 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/Skufu/RSS/internal/config"
+	"github.com/Skufu/RSS/internal/database"
+	_ "github.com/lib/pq"
 )
 
 // state holds application state that can be passed to command handlers
 type state struct {
-	config *config.Config
+	db  *database.Queries
+	cfg *config.Config
 }
 
 func main() {
@@ -20,9 +24,20 @@ func main() {
 		log.Fatalf("Error reading config: %v", err)
 	}
 
+	// Load Database
+	db, err := sql.Open("postgres", cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("Error opening database: %v", err)
+	}
+	defer db.Close()
+
+	// Create database queries
+	dbQueries := database.New(db)
+
 	// Initialize application state
 	s := &state{
-		config: &cfg,
+		db:  dbQueries,
+		cfg: &cfg,
 	}
 
 	// Initialize commands
@@ -32,6 +47,7 @@ func main() {
 
 	// Register command handlers
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
 
 	// Process command line arguments
 	args := os.Args
@@ -39,7 +55,7 @@ func main() {
 	if len(args) < 2 {
 		fmt.Println("Error: not enough arguments provided")
 		fmt.Println("Usage: gator <command> [args...]")
-		fmt.Println("Available commands: login")
+		fmt.Println("Available commands: login, register")
 		os.Exit(1)
 	}
 
