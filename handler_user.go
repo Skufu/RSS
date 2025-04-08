@@ -80,3 +80,48 @@ func handlerRegister(s *state, cmd command) error {
 
 	return nil
 }
+
+// handlerReset handles the reset command which deletes all users
+func handlerReset(s *state, cmd command) error {
+	// Delete all users from the database
+	ctx := context.Background()
+	err := s.db.ResetUsers(ctx)
+	if err != nil {
+		fmt.Printf("Error: Failed to reset database: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Database reset successful. All users have been deleted.")
+	return nil
+}
+
+// handlerUsers handles the users command which lists all users
+func handlerUsers(s *state, cmd command) error {
+	// Get all users from the database
+	ctx := context.Background()
+	users, err := s.db.GetUsers(ctx)
+	if err != nil {
+		fmt.Printf("Error: Failed to get users: %v\n", err)
+		os.Exit(1)
+	}
+
+	// If no users, print a message
+	if len(users) == 0 {
+		fmt.Println("No users found in the database.")
+		return nil
+	}
+
+	// Get the current user from config
+	currentUser := s.cfg.CurrentUserName
+
+	// Print each user, marking the current one
+	for _, user := range users {
+		if user.Name == currentUser {
+			fmt.Printf("* %s (current)\n", user.Name)
+		} else {
+			fmt.Printf("* %s\n", user.Name)
+		}
+	}
+
+	return nil
+}
