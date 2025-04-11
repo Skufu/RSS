@@ -11,7 +11,7 @@ import (
 )
 
 // handlerFollow handles the follow command which creates a follow relationship between the current user and a feed
-func handlerFollow(s *state, cmd command) error {
+func handlerFollow(s *state, cmd command, user database.User) error {
 	// Check if we have the right number of arguments
 	if len(cmd.args) < 1 {
 		return errors.New("follow command requires a url argument")
@@ -19,19 +19,8 @@ func handlerFollow(s *state, cmd command) error {
 
 	url := cmd.args[0]
 
-	// Check if a user is set in the config
-	if s.cfg.CurrentUserName == "" {
-		return errors.New("no user set, please login first")
-	}
-
-	// Get the current user from the database
-	ctx := context.Background()
-	user, err := s.db.GetUserByName(ctx, s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("failed to get current user: %w", err)
-	}
-
 	// Get the feed by URL
+	ctx := context.Background()
 	feed, err := s.db.GetFeedByURL(ctx, url)
 	if err != nil {
 		return fmt.Errorf("failed to find feed with URL %s: %w", url, err)
@@ -58,21 +47,41 @@ func handlerFollow(s *state, cmd command) error {
 	return nil
 }
 
-// handlerFollowing handles the following command which lists all feeds that the current user is following
-func handlerFollowing(s *state, cmd command) error {
-	// Check if a user is set in the config
-	if s.cfg.CurrentUserName == "" {
-		return errors.New("no user set, please login first")
+// handlerUnfollow handles the unfollow command which removes a follow relationship between the current user and a feed
+func handlerUnfollow(s *state, cmd command, user database.User) error {
+	// Check if we have the right number of arguments
+	if len(cmd.args) < 1 {
+		return errors.New("unfollow command requires a url argument")
 	}
 
-	// Get the current user from the database
+	url := cmd.args[0]
+
+	// Verify the feed exists
 	ctx := context.Background()
-	user, err := s.db.GetUserByName(ctx, s.cfg.CurrentUserName)
+	feed, err := s.db.GetFeedByURL(ctx, url)
 	if err != nil {
-		return fmt.Errorf("failed to get current user: %w", err)
+		return fmt.Errorf("failed to find feed with URL %s: %w", url, err)
 	}
 
+	// Delete the feed follow record
+	err = s.db.DeleteFeedFollow(ctx, database.DeleteFeedFollowParams{
+		UserID: user.ID,
+		Url:    url,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to unfollow feed: %w", err)
+	}
+
+	// Print success message
+	fmt.Printf("You (%s) have unfollowed the feed: %s\n", user.Name, feed.Name)
+
+	return nil
+}
+
+// handlerFollowing handles the following command which lists all feeds that the current user is following
+func handlerFollowing(s *state, cmd command, user database.User) error {
 	// Get all feed follows for the user
+	ctx := context.Background()
 	feedFollows, err := s.db.GetFeedFollowsForUser(ctx, user.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get feed follows: %w", err)

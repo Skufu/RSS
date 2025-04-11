@@ -36,4 +36,10 @@ ORDER BY f.name;
 -- name: GetFeedByURL :one
 SELECT * FROM feeds
 WHERE url = $1
-LIMIT 1; 
+LIMIT 1;
+
+-- name: DeleteFeedFollow :exec
+DELETE FROM feed_follows ff
+WHERE ff.user_id = $1 AND ff.feed_id = (
+    SELECT id FROM feeds WHERE url = $2
+); 

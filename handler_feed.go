@@ -11,7 +11,7 @@ import (
 )
 
 // handlerAddFeed handles the addfeed command which adds a feed for the current user
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	// Check if we have the right number of arguments
 	if len(cmd.args) < 2 {
 		return errors.New("addfeed command requires name and url arguments")
@@ -20,19 +20,8 @@ func handlerAddFeed(s *state, cmd command) error {
 	name := cmd.args[0]
 	url := cmd.args[1]
 
-	// Check if a user is set in the config
-	if s.cfg.CurrentUserName == "" {
-		return errors.New("no user set, please login first")
-	}
-
-	// Get the current user from the database
-	ctx := context.Background()
-	user, err := s.db.GetUserByName(ctx, s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("failed to get current user: %w", err)
-	}
-
 	// Create the feed
+	ctx := context.Background()
 	now := time.Now()
 	feedParams := database.CreateFeedParams{
 		ID:        uuid.New(),
