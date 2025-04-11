@@ -13,7 +13,6 @@ type Config struct {
 }
 
 const configFileName = ".gatorconfig.json"
-const defaultDBURL = "postgres://adriangabriellfrancisco:@localhost:5432/gator?sslmode=disable"
 
 // Read reads the config file from ~/.gatorconfig.json and returns a Config struct
 func Read() (Config, error) {
@@ -26,9 +25,7 @@ func Read() (Config, error) {
 	if err != nil {
 		// If the file doesn't exist, return a default config
 		if os.IsNotExist(err) {
-			return Config{
-				DatabaseURL: defaultDBURL,
-			}, nil
+			return getDefaultConfig(), nil
 		}
 		return Config{}, err
 	}
@@ -40,10 +37,28 @@ func Read() (Config, error) {
 
 	// Set default values if not present
 	if config.DatabaseURL == "" {
-		config.DatabaseURL = defaultDBURL
+		config.DatabaseURL = getDefaultDBURL()
 	}
 
 	return config, nil
+}
+
+// getDefaultConfig returns a config with default values
+func getDefaultConfig() Config {
+	return Config{
+		DatabaseURL: getDefaultDBURL(),
+	}
+}
+
+// getDefaultDBURL returns the default database URL from environment variable or a minimal default
+func getDefaultDBURL() string {
+	// First try to get from environment variable
+	if dbURL := os.Getenv("GATOR_DB_URL"); dbURL != "" {
+		return dbURL
+	}
+
+	// Return a minimal default that requires configuration
+	return "postgres://localhost:5432/gator?sslmode=disable"
 }
 
 // SetUser sets the current_user_name field and writes the config to the file
