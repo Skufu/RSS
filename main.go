@@ -50,6 +50,9 @@ func main() {
 	cmds.register("register", handlerRegister)
 	cmds.register("reset", handlerReset)
 	cmds.register("users", handlerUsers)
+	cmds.register("agg", handlerAgg)
+	cmds.register("addfeed", handlerAddFeed)
+	cmds.register("feeds", handlerFeeds)
 
 	// Process command line arguments
 	args := os.Args
@@ -57,7 +60,7 @@ func main() {
 	if len(args) < 2 {
 		fmt.Println("Error: not enough arguments provided")
 		fmt.Println("Usage: gator <command> [args...]")
-		fmt.Println("Available commands: login, register, reset, users")
+		fmt.Println("Available commands: login, register, reset, users, agg, addfeed, feeds")
 		os.Exit(1)
 	}
 
