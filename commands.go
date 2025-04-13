@@ -2,29 +2,38 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/Skufu/RSS/internal/app"
 )
 
 // command represents a CLI command with its name and arguments
-type command struct {
-	name string
-	args []string
+// type command struct {
+// 	name string
+// 	args []string
+// }
+
+// Commands holds all the commands the CLI can handle
+type Commands struct {
+	handlers map[string]func(*app.State, app.Command) error
 }
 
-// commands holds all the commands the CLI can handle
-type commands struct {
-	handlers map[string]func(*state, command) error
+// NewCommands creates a new Commands instance
+func NewCommands() *Commands {
+	return &Commands{
+		handlers: make(map[string]func(*app.State, app.Command) error),
+	}
 }
 
-// register adds a new handler function for a command name
-func (c *commands) register(name string, f func(*state, command) error) {
+// Register adds a new handler function for a command name
+func (c *Commands) Register(name string, f func(*app.State, app.Command) error) {
 	c.handlers[name] = f
 }
 
-// run executes a given command with the provided state if it exists
-func (c *commands) run(s *state, cmd command) error {
-	handler, exists := c.handlers[cmd.name]
+// Run executes a given command with the provided state if it exists
+func (c *Commands) Run(s *app.State, cmd app.Command) error {
+	handler, exists := c.handlers[cmd.Name]
 	if !exists {
-		return fmt.Errorf("unknown command: %s", cmd.name)
+		return fmt.Errorf("unknown command: %s", cmd.Name)
 	}
 	return handler(s, cmd)
 }

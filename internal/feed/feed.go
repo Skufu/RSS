@@ -1,4 +1,4 @@
-package main
+package feed
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"time"
 )
 
 // RSSFeed represents the structure of an RSS feed
@@ -27,8 +28,8 @@ type RSSItem struct {
 	PubDate     string `xml:"pubDate"`
 }
 
-// fetchFeed retrieves and parses an RSS feed from the given URL
-func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
+// FetchFeed retrieves and parses an RSS feed from the given URL
+func FetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	// Create a new HTTP request with context
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, feedURL, nil)
 	if err != nil {
@@ -36,10 +37,13 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	}
 
 	// Set User-Agent header to identify our client
-	req.Header.Set("User-Agent", "gator")
+	req.Header.Set("User-Agent", "gator") // Consider making User-Agent configurable
 
-	// Create HTTP client and send request
-	client := &http.Client{}
+	// Create HTTP client with timeout
+	client := &http.Client{
+		Timeout: 10 * time.Second, // Set a reasonable timeout to prevent hanging
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching feed: %w", err)
@@ -74,35 +78,4 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	}
 
 	return &feed, nil
-}
-
-// handlerAgg handles the agg command which fetches and displays a feed
-func handlerAgg(s *state, cmd command) error {
-	// For now, we'll just fetch the wagslane.dev feed
-	feedURL := "https://www.wagslane.dev/index.xml"
-
-	fmt.Printf("Fetching feed from %s\n", feedURL)
-
-	ctx := context.Background()
-	feed, err := fetchFeed(ctx, feedURL)
-	if err != nil {
-		return fmt.Errorf("failed to fetch feed: %w", err)
-	}
-
-	// Print the feed information
-	fmt.Printf("Feed Title: %s\n", feed.Channel.Title)
-	fmt.Printf("Feed Link: %s\n", feed.Channel.Link)
-	fmt.Printf("Feed Description: %s\n", feed.Channel.Description)
-	fmt.Printf("Items: %d\n\n", len(feed.Channel.Item))
-
-	// Print each item
-	for i, item := range feed.Channel.Item {
-		fmt.Printf("Item %d:\n", i+1)
-		fmt.Printf("  Title: %s\n", item.Title)
-		fmt.Printf("  Link: %s\n", item.Link)
-		fmt.Printf("  Publication Date: %s\n", item.PubDate)
-		fmt.Printf("  Description: %s\n\n", item.Description)
-	}
-
-	return nil
 }
