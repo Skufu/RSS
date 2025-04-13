@@ -9,7 +9,7 @@
 
 </div>
 
-A powerful command-line RSS feed aggregator that helps you stay updated with your favorite content sources from the comfort of your terminal.
+A command-line RSS feed aggregator that helps you stay updated with your favorite content sources from your terminal.
 
 ## Features
 
