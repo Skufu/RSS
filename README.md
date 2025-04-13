@@ -1,4 +1,4 @@
-# 📰 RSS Aggregator - Command-Line RSS Feed Reader
+# 📰 RSS AggreGator
 
 <div align="center">
 
