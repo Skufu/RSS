@@ -1,16 +1,29 @@
-# Gator - A Command-Line RSS Feed Aggregator
+# 📰 Gator - A Command-Line RSS Feed Aggregator
 
-Gator is a command-line RSS feed aggregator that lets you:
-- Follow your favorite RSS feeds
-- Automatically collect and store posts
-- Browse posts from the terminal
+<div align="center">
+
+![Gator RSS Logo](https://img.shields.io/badge/Gator-RSS%20Aggregator-green)
+[![Go Version](https://img.shields.io/badge/Go-1.18+-00ADD8?logo=go&logoColor=white)](https://golang.org/doc/install)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12+-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/download/)
+
+
+</div>
+
+Gator is a command-line RSS feed aggregator that helps you stay updated with content sources from your terminal.
+
+## Features
+
+- **Discover & Follow**: Track your favorite RSS feeds
+- **Automatic Collection**: Schedule periodic content fetching
+- **Content Storage**: Save posts to a database for later access
+- **Terminal Reading**: Browse all content from the command line
 
 ## Prerequisites
 
-To run Gator, you'll need:
+Before you begin, ensure you have the following installed:
 
-- [Go](https://golang.org/doc/install) (version 1.18 or higher)
-- [PostgreSQL](https://www.postgresql.org/download/) (version 12 or higher)
+- **Go** - version 1.18 or higher [→ Installation Guide](https://golang.org/doc/install)
+- **PostgreSQL** - version 12 or higher [→ Installation Guide](https://www.postgresql.org/download/)
 
 ## Installation
 
@@ -27,25 +40,25 @@ go install
 
 After installation, the `gator` command should be available in your PATH.
 
-### Setting Up the Database
+### Database Setup
 
-1. Create a PostgreSQL database:
+1. **Create a PostgreSQL database**:
 
 ```bash
 createdb rss
 ```
 
-2. Run the migrations:
+2. **Run the migrations**:
 
 ```bash
-# Install goose migration tool if you don't have it
+# Install goose migration tool if needed
 go install github.com/pressly/goose/v3/cmd/goose@latest
 
-# Run migrations
+# Apply migrations
 goose -dir sql/schema postgres "postgres://localhost:5432/rss?sslmode=disable" up
 ```
 
-## Configuration
+## ⚙️ Configuration
 
 Gator uses a configuration file located at `~/.gatorconfig.json`:
 
@@ -56,78 +69,77 @@ Gator uses a configuration file located at `~/.gatorconfig.json`:
 }
 ```
 
-You can create this file manually or let Gator create it with default values.
+You can create this file manually or let Gator create it with default values on first run.
 
-## Commands
-
-Here are some of the commands you can use:
+## Commands Reference
 
 ### User Management
 
-```bash
-# Register a new user
-gator register username
-
-# Login as a user
-gator login username
-```
+| Command | Description | Example |
+|---------|-------------|---------|
+| `register` | Create a new user account | `gator register username` |
+| `login` | Switch to another user | `gator login username` |
 
 ### Feed Management
 
-```bash
-# Add a new feed
-gator addfeed "HackerNews" "https://news.ycombinator.com/rss"
-
-# List all feeds
-gator feeds
-
-# Follow an existing feed
-gator follow "https://news.ycombinator.com/rss"
-
-# List feeds you're following
-gator following
-
-# Unfollow a feed
-gator unfollow "https://news.ycombinator.com/rss"
-```
+| Command | Description | Example |
+|---------|-------------|---------|
+| `addfeed` | Add a new RSS feed | `gator addfeed "HackerNews" "https://news.ycombinator.com/rss"` |
+| `feeds` | List all available feeds | `gator feeds` |
+| `follow` | Follow an existing feed | `gator follow "https://news.ycombinator.com/rss"` |
+| `following` | List feeds you're following | `gator following` |
+| `unfollow` | Unfollow a feed | `gator unfollow "https://news.ycombinator.com/rss"` |
 
 ### Content Aggregation
 
-```bash
-# Start the aggregator (runs continuously, collecting posts every 5 minutes)
-gator agg 5m
+| Command | Description | Example |
+|---------|-------------|---------|
+| `agg` | Start the aggregator (with interval) | `gator agg 5m` |
+| `browse` | View posts from followed feeds | `gator browse` |
+| `browse <limit>` | View specific number of posts | `gator browse 5` |
 
-# Browse recent posts from feeds you follow (default 20 posts)
-gator browse
+## Workflow
 
-# Browse with custom limit (e.g., only 5 posts)
-gator browse 5
 ```
-
-## How It Works
-
-1. **Register**: Create a user account
-2. **Add Feeds**: Add RSS feeds you want to follow
-3. **Follow Feeds**: Choose which feeds to follow
-4. **Aggregate**: Run the aggregator to collect posts
-5. **Browse**: View posts from feeds you follow
+┌─────────────┐     ┌────────────┐     ┌──────────────┐     ┌──────────────┐     ┌────────────┐
+│ 1. Register │ ──▶ │ 2. Add     │ ──▶ │ 3. Follow    │ ──▶ │ 4. Aggregate │ ──▶ │ 5. Browse  │
+│    User     │     │    Feeds   │     │    Feeds     │     │    Posts     │     │    Posts   │
+└─────────────┘     └────────────┘     └──────────────┘     └──────────────┘     └────────────┘
+```
 
 The aggregator runs in the background and continuously collects new posts from your followed feeds at the interval you specify.
 
+## Usage Examples
+
+### Setting Up and Following Feeds
+
+```bash
+# Create a user
+gator register johndoe
+
+# Add some popular tech feeds
+gator addfeed "HackerNews" "https://news.ycombinator.com/rss"
+gator addfeed "TechCrunch" "https://techcrunch.com/feed/"
+gator addfeed "Lobsters" "https://lobste.rs/rss"
+
+# Start the aggregator in the background (updating every 10 minutes)
+gator agg 10m &
+
+# In another terminal, browse the latest posts
+gator browse
+```
+
 ## Development
 
-For development, you can use:
+For development, use:
 
 ```bash
 go run . <command>
 ```
 
-But for production use, install the binary and use:
+For production use, install the binary and use:
 
 ```bash
 gator <command>
 ```
 
-## License
-
-MIT 
